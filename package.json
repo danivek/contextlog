@@ -1,0 +1,32 @@
+{
+  "name": "contextlog",
+  "version": "0.1.0",
+  "description": "Structured context logging",
+  "main": "index.js",
+  "scripts": {
+    "lint": "./node_modules/.bin/eslint .",
+    "test": "./node_modules/.bin/istanbul cover --print both ./node_modules/mocha/bin/_mocha -- -R spec ./test/**/*.js",
+    "coveralls": "cat ./coverage/lcov.info | node ./node_modules/coveralls/bin/coveralls.js"
+  },
+  "keywords": [
+    "structured-log",
+    "log",
+    "context",
+    "metadata"
+  ],
+  "author": "Kévin Danielo",
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "coveralls": "^3.0.0",
+    "eslint": "^4.9.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.7.0",
+    "istanbul": "^0.4.2",
+    "mocha": "^4.0.1",
+    "node-mocks-http": "^1.6.6"
+  },
+  "dependencies": {
+    "useragent": "^2.2.1"
+  }
+}
