@@ -1,6 +1,6 @@
 {
   "name": "contextlog",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Structured context logging",
   "main": "index.js",
   "scripts": {
