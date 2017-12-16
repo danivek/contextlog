@@ -209,6 +209,52 @@ describe('Contextlog', () => {
       expect(context).to.have.property('custom').to.eql('custom');
       done();
     });
+
+    it('should clean empty standard context', (done) => {
+      const contextlog = new Contextlog({
+        application: { name: pkg.name, version: '1.0.0' },
+        user: ({ req }) => ({ id: req.user && req.user.id }),
+        resource: ({ req }) => ({ type: req.params.type, id: req.params.id }),
+        custom: ({ req }) => ({ custom: req.custom }),
+      });
+      const req = httpMocks.createRequest();
+      const res = httpMocks.createResponse();
+
+      const context = contextlog.standard({ req, res });
+
+      expect(context).to.have.property('date');
+      expect(context).to.have.property('application').to.eql({ name: 'contextlog', version: '1.0.0' });
+      expect(context).to.not.have.property('user');
+      expect(context).to.not.have.property('resource');
+      expect(context).to.not.have.property('custom');
+      done();
+    });
+
+    it('should return standard context with keyValue option', (done) => {
+      const contextlog = new Contextlog({
+        keyValue: true,
+        application: { name: pkg.name, version: '1.0.0' },
+        user: ({ req }) => ({ id: req.user.id }),
+        resource: ({ req }) => ({ type: req.params.type, id: req.params.id }),
+        custom: ({ req }) => ({ custom: req.custom }),
+      });
+      const req = httpMocks.createRequest();
+      const res = httpMocks.createResponse();
+
+      req.user = { id: 'john.doe' };
+      req.params = { type: 'blog', id: '1' };
+      req.custom = 'custom';
+
+      const context = contextlog.standard({ req, res });
+      expect(context).to.have.property('date');
+      expect(context).to.have.property('application_name').to.eql('contextlog');
+      expect(context).to.have.property('application_version').to.eql('1.0.0');
+      expect(context).to.have.property('user_id').to.eql('john.doe');
+      expect(context).to.have.property('resource_type').to.eql('blog');
+      expect(context).to.have.property('resource_id').to.eql('1');
+      expect(context).to.have.property('custom').to.eql('custom');
+      done();
+    });
   });
 
   describe('request', () => {
@@ -247,6 +293,50 @@ describe('Contextlog', () => {
       expect(context.req.userAgent).to.have.property('family').to.eql('Chrome');
       done();
     });
+
+    it('should get request context with keyValue option', (done) => {
+      const contextlog = new Contextlog({
+        keyValue: true,
+        reqBody: true,
+        resBody: true,
+      });
+      const req = httpMocks.createRequest({
+        method: 'POST',
+        url: '/path/to/endpoint',
+        headers: {
+          host: 'localhost',
+          connection: 'keep-alive',
+        },
+        body: {
+          data: 'data',
+          password: 'password',
+        },
+      });
+      req.httpVersion = '1.1';
+      req.ip = '0.0.0.0';
+      const res = httpMocks.createResponse();
+      res.statusCode = '200';
+      res._headers = {
+        'content-type': 'application/json; charset=utf-8',
+      };
+      res.body = {
+        data: 'data',
+      };
+
+      const requestContext = contextlog.request({ req, res });
+      expect(requestContext).to.have.property('date');
+      expect(requestContext).to.have.property('req_body').to.eql('{"data":"data","password":"password"}');
+      expect(requestContext).to.have.property('req_headers_connection').to.eql('keep-alive');
+      expect(requestContext).to.have.property('req_headers_host').to.eql('localhost');
+      expect(requestContext).to.have.property('req_httpVersion').to.eql('1.1');
+      expect(requestContext).to.have.property('req_method').to.eql('POST');
+      expect(requestContext).to.have.property('req_remoteAddress').to.eql('0.0.0.0');
+      expect(requestContext).to.have.property('req_url').to.eql('/path/to/endpoint');
+      expect(requestContext).to.have.property('res_body').to.eql('{"data":"data"}');
+      expect(requestContext).to.have.property('res_headers_content-type').to.eql('application/json; charset=utf-8');
+      expect(requestContext).to.have.property('res_statusCode').to.eql('200');
+      done();
+    });
   });
 
   describe('error', () => {
@@ -282,6 +372,39 @@ describe('Contextlog', () => {
       expect(context.process).to.have.property('version');
       expect(context.process).to.have.property('argv');
       expect(context.process).to.have.property('memoryUsage');
+
+      done();
+    });
+
+    it('should get error context with keyValue option', (done) => {
+      const contextlog = new Contextlog({
+        keyValue: true,
+      });
+      const req = httpMocks.createRequest();
+      const res = httpMocks.createResponse();
+
+      const err = new Error('boom');
+      const context = contextlog.error(err, { req, res });
+      expect(context).to.have.property('error').to.eql(true);
+      expect(context).to.have.property('message').to.eql('boom');
+      expect(context).to.have.property('stack');
+      // Os metadata
+      expect(context).to.have.property('os_hostname');
+      expect(context).to.have.property('os_plateform');
+      expect(context).to.have.property('os_loadavg_0');
+      expect(context).to.have.property('os_uptime');
+      expect(context).to.have.property('os_freemem');
+      // Process metadata
+      expect(context).to.have.property('process_pid');
+      expect(context).to.have.property('process_uid');
+      expect(context).to.have.property('process_gid');
+      expect(context).to.have.property('process_cwd');
+      expect(context).to.have.property('process_execPath');
+      expect(context).to.have.property('process_version');
+      expect(context).to.have.property('process_argv_0');
+      expect(context).to.have.property('process_memoryUsage_rss');
+      expect(context).to.have.property('process_memoryUsage_heapUsed');
+      expect(context).to.have.property('process_memoryUsage_external');
 
       done();
     });
