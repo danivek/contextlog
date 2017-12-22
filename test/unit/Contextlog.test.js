@@ -189,11 +189,16 @@ describe('Contextlog', () => {
     it('should return standard context with options', (done) => {
       const contextlog = new Contextlog({
         application: { name: pkg.name, version: '1.0.0' },
+        id: ({ req }) => req.headers['x-request-id'],
         user: ({ req }) => ({ id: req.user.id }),
         resource: ({ req }) => ({ type: req.params.type, id: req.params.id }),
         custom: ({ req }) => ({ custom: req.custom }),
       });
-      const req = httpMocks.createRequest();
+      const req = httpMocks.createRequest({
+        headers: {
+          'x-request-id': 'cf9d3ae3-828e-4180-8e24-cdeaa2795dc6',
+        },
+      });
       const res = httpMocks.createResponse();
 
       req.user = { id: 'john.doe' };
@@ -204,6 +209,7 @@ describe('Contextlog', () => {
 
       expect(context).to.have.property('date');
       expect(context).to.have.property('application').to.eql({ name: 'contextlog', version: '1.0.0' });
+      expect(context).to.have.property('id').to.eql('cf9d3ae3-828e-4180-8e24-cdeaa2795dc6');
       expect(context).to.have.property('user').to.eql({ id: 'john.doe' });
       expect(context).to.have.property('resource').to.eql({ type: 'blog', id: '1' });
       expect(context).to.have.property('custom').to.eql('custom');

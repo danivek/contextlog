@@ -65,6 +65,7 @@ const contextlog = new Contextlog({
   - **keyValue** (optional): key-value pairs format (except for `req.body` and `res.body` that will be stringify). Default = false;
   - **skipUrls** (optional): Array of regex to skip/exclude specific URLs from logging.
   - **application** (optional): *object* or *function*. Describes the application context.
+  - **id** (optional): *object* or *function*. Describes the transaction id.
   - **user** (optional): *object* or *function*. Describes the user context.
   - **resource** (optional): *object* or *function*. Describes the resource context.
   - **custom** (optional): *object* or *function*. Add custom metadata to top-level.
